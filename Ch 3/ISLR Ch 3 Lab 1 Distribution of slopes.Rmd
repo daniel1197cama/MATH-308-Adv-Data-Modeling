@@ -350,7 +350,7 @@ str(myModel)
 
 
 
-myExamples <- read_csv("RegressionExamples.csv")
+myExamples <- read_csv("Ch 3/ISLR Ch 3 Lab 2 RegressionExamples.csv")
 
 myExStats <- tibble(id = double(),
                   m = double(),
