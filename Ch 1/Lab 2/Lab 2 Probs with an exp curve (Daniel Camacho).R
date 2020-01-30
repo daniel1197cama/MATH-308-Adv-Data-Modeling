@@ -82,8 +82,8 @@ myPlot + labs(title = paste("Exponential distribution with lambda = ",
 
 ##################################################
 
-##################################################
-#   Question (5): ------------------------------
+########## Chi-Square Random Variable########################################
+#   Question (5): 
 #   What is the probability that a chi-square random 
 #   variable with 10 degrees of freedom is greater 
 #   than 15.99?  (This curve can be graphed on the
@@ -137,8 +137,8 @@ myPlot + ggtitle(paste("Chi-Square Distribution with df  = ",
 
 ##################################################
 
-##################################################
-#   Question (6): ------------------------------
+######### F- Statistics Distribution ################
+#   Question (6): 
 #   Find the probability that an F-statistics is
 #   less than 0.595 if the degrees of freedom are 
 #   df = 11 and df = 6.  (This curve can be graphed on the
