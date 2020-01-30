@@ -300,9 +300,10 @@ m_z
 1. Explain when to use a pipe ( %>% ) and a layer ( + ).  
 What is the difference and when do we use each?
 
-1. Explain the difference between `a -> b` and `b <- a`.
+1. Explain the difference between `a -> b` and `a <- b`.
 
 1.  What is the advantage of storing a `ggplot` object?
+add layers to the object.
 
 
 ```{r}
@@ -350,7 +351,7 @@ str(myModel)
 
 
 
-myExamples <- read_csv("Ch 3/ISLR Ch 3 Lab 2 RegressionExamples.csv")
+myExamples <- read_csv("C:/Users/DCama/Documents/MATH-308-Adv-Data-Modeling/Ch 3/ISLR Ch 3 Lab 2 RegressionExamples.csv")
 
 myExStats <- tibble(id = double(),
                   m = double(),
