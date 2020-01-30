@@ -1,0 +1,119 @@
+---
+title: "**ISLR Chapter 2 Question 9**"
+author: "Daniel Camacho"
+date: "01/29/2020"
+output: html_document
+
+---
+***
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ISLR)
+require(tidyverse)
+```
+
+#### This exercise involves the **Auto** data set studied in the lab. Make sure that the missing values have been removed from the data.
+***
+
+#### **Part (a)** Which of the predictors are quantitative, and which are qualitative?
+
+> We can see from the code below that 'name' is qualitative. It is not clear from the 'str(Auto)' below that origin is also qualitative, but from the help we know that 'origin' is 1,2, or 3 depending on thether the car is from the U.S.A, Europe, or Japan. All other variables are quantitative.
+
+```{r}
+names(Auto)
+str(Auto)
+```
+*** 
+
+#### **Part (b)** What is the range of each quantitative predictor?
+
+> From the summary below we see that the range for the following quantitative predictors is: 
+  
+Predictor   | Range
+------------|--------  
+mpg         | [9, 46.60]
+cylinders   | [3.0, 8.0]
+displacement| [68.0, 455.0]
+horsepower  | [46.0, 230.0]
+weight      | [1613, 5140]
+acceleration| [8.0, 24.80]
+year        | [10.0, 82.00]
+
+```{r}
+summary(Auto[,-c(8,9)])
+```
+> Here, "-c(8,9)" means that the 8th and 9th rows are not included in the output. In other words, "origin" and "name" are the deleted variables in the data since these are qualitative predictors, not quantitative predictors. From the above output, the code gives the minimum value, maximum value, three quartile values, mean, and median values.
+
+***
+#### **Part (c)** What is the mean and standard deviation of each quantitative predictor? 
+
+> The following code is used to compute the mean for each of the quantitative predictors:
+
+```{r}
+sapply(Auto[,-c(8,9)], mean)
+```
+
+> The following code is used to compute the standard deviation for each of the quantitative predictors:
+
+```{r}
+sapply(Auto[,-c(8,9)], sd)
+```
+
+***
+#### **Part (d)** Now remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains?
+
+> The following code is used to remove the data from the 10th to 85th observations and also to compute the mean and standard deviation for the data.
+
+```{r}
+newauto = Auto[-c(10:85), -c(8,9)]
+sapply(newauto, mean)
+sapply(newauto, sd)
+```
+
+***
+#### **Part (e)** Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings. 
+
+> The following code will plot the variable data in R:
+
+```{r}
+pairs(Auto)
+```
+
+> The above plot shows that mpg has an inverse relation relation between weight, horsepower, and displacement, while a direct relation with that of years. There is more mileage on four cylinder engines, and a better mpg in Japanese made that US or European made.
+
+***
+
+#### **Part (f)**  Suppose that we wish to predict gas mileage (**mpg**) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting **mpg**? Justify your answer. 
+
+> The following piece of code produces a matrix of scatterplots. Here, the data is plotted to compare the mpg variable with all other variables.
+
+```{r}
+pairs(~mpg + horsepower + weight + displacement + cylinders, data = Auto, panel = panel.smooth)
+```
+
+> Using ggplot, we observe that the plot produced below with the following code is the same as the bottom-left corner plot in the matrix of scatterplots above.
+
+```{r}
+Auto %>%
+  ggplot(aes(x =mpg, y= cylinders)) + 
+  geom_point() + 
+  labs(title = "Auto data: Can cylinders predict mpg?", 
+       subtitle= "ISLR Chapter 2 Question 9", 
+       caption= " Part (f)", 
+       x = "Miles per galon",
+       y = "Number of cylinders")
+```
+
+> The following observations can be observed from the obove output: 
+
+* <p style="font-size:12pt"> From the plot of mpg vs cylinders, all the data is in decreasing trend. </p>
+
+* <p style="font-size:12pt"> From the plot of mpg vs horsepower, all the data is in decreasing trend. </p>
+
+* <p style="font-size:12pt"> From the plot of mpg vs weight, all the data is in decreasing trend. </p>
+
+* <p style="font-size:12pt"> From the plot of mpg vs displacement, all the data is in decreasing trend. </p>
+
+> In conclusion, it is observed from all the plots that the mpg variable is in decreasing trend with any other variable.
+
