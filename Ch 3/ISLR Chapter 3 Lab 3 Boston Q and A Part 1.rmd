@@ -1,0 +1,284 @@
+---
+title: "ISLR Chapter 3 Lab 3: Boston Q & A Part 1"
+date: "January 30, 2020"
+output: html_document
+---
+
+```{r setup, echo = FALSE}
+require("MASS")
+require("ISLR")
+require("tidyverse")
+require("GGally")
+require("broom")
+```
+
+# A regression analysis of Boston Housing data
+
+Consider the dataset `Boston`.  How many rows and columns are there?  What are the variables and their types?
+
+```{r}
+Boston <- as_tibble(Boston)
+###Enter code here to answer the questions above.
+
+summary(Boston)
+str(Boston)
+class(Boston)
+
+```
+
+In this dataset we are interested in finding whether there is a relationship between `medv` and some of the input variables, how strong the relationship is, whether a linear relationship is a good fit or not, what inferences can be made, how well can we predict values, etc.
+
+But first, "Plot the data."  Make pairwise scatterplots of `medv`, `nox`, `rm`, and `lstat` using `ggpairs`.  Observations?
+
+```{r}
+
+# HW plot only 4 columns
+Boston %>% 
+  ggpairs(cols = c(5, 6, 13, 14))
+```
+
+## 1. Is there a relationship between the level of nitrous oxide (nox), number of rooms of a house (rm), or the economic status of a neighborhood (lstat) on the median value of the homes (medv)?
+
+Our first goal should be to determine whether the data provide evidence of an association between the input variables $nox$, $rm$, and $lstat$ and the output variable $medv$.
+
+
+### The $F$-test
+
+This question can be answered by using an $F$-test.
+Here are the five steps of the overall $F$-test for regression [1](http://facweb.cs.depaul.edu/sjost/csc423/documents/f-test-reg.htm)
+ 
+1. State the null and alternative hypotheses in the context of the problem.
+ 
+  $H_0:   ??_1 = ??_2 = ... = ??_{p-1} = 0$
+ 
+  $H_a:   ??_j \neq 0$, for at least one value of $j$
+ 
+2. Compute the test statistic assuming that the null hypothesis is true.
+ 
+  This is done for use by R, but the calculation is 
+  
+  $ F = \frac{\textrm{explained variance}}{\textrm{unexplained variance}}.$
+ 
+3. Calculate the $p$-value for the $F$-statistic for this model in an $F$ distribution with $(p - 1 , n - p + 1)$.  Again, R does this for us.  Reject the null hypothesis if the $p$-value is less than a predetermined value of $\alpha$.  For the purposes of this class, we will use $\alpha = 0.01$, but that would be determined by your organization or by the end user.
+ 
+### Applying the $F$-test
+
+This question can be answered by fitting a multiple regression model
+of $medv$ onto $nox$, $rm$, and $lstat$ and testing the null hypothesis that in the equation 
+
+$$medv = \beta_{nox} x_{nox} + \beta_{rm} x_{rm} + \beta_{lstat} x_{lstat}$$ 
+all the coefficients are zero.  That is, the null hypothesis is 
+
+$$H_0 : \beta_{nox} = \beta_{rm} = \beta_{lstat} = 0.$$
+If we reject the null hypothesis, then there is evidence that at least one of the $\beta_k$ is not zero.
+
+```{r}
+# create the model object, output the F-statistic
+#medv.fit <- lm(....)
+medv.fit <- lm(medv ~ nox + rm + lstat, data = Boston)
+glance(medv.fit)
+
+```
+
+The $p = ...$ for the $F$-statistic in this multivariable linear regression model is ..... than $0.01$, indicating that we would .... the null hypothesis that the coefficients are all 0.
+Thus,  there .... evidence that at least one of the coefficients is not 0.
+
+The conclusion to the $F$-test  is that there is or is not evidence of  a relationship, but testing the $F$-statistic does not indicate whether the relationship is strong or not, it does not indicate whether a linear fit is the right choice, and it does not indicate which or how many of the $\beta_k$ is non-zero.
+
+## 2. How strong is the relationship between the input variables `nox`, `rm`, and `lstat` and the median value of the homes?
+
+Can we predict the median value of a home with
+a high level of accuracy using these input variables? Or is
+a prediction of `medv` based on these three input factors only slightly
+better than a random guess? 
+
+There are two measures of model model accuracy in ISLR: percent error in predictions and the adjusted-$R^2$.
+
+First,
+the $RSE$ estimates the standard deviation of the response from the
+population regression line. For this model, the RSE is .....
+units while the mean value for the response is ...., indicating a
+percentage error of roughly  25%, which is a pretty big error and the end users would have to decide if that's okay.... . (See ISLR Section 3.1.3)
+
+Second, the adjusted $R^2$ statistic records
+the percentage of variability in the response that is explained by
+the predictors. The predictors explain almost ..... of the variance in
+median house value.
+
+Based on these two values, the percent error and the adjusted $R^2$, we could say that this is a moderately strong model.
+
+```{r}
+# Write code that will calculate the RSE and adjusted-R^2
+y_bar <- mean(Boston$medv)
+
+```
+
+In conclusion, we can predict median house values to within .... of the average median house value and the model explains ..... of the variance in median house value.  Thus, this is a (strong, weak) model.
+
+
+#### 3. Which of `nox`, `rm`, and `lstat` contribute to the median value of the homes?
+
+Do all three input variables chosen contribute to the median value of the homes,
+or do just one or two of the input variables  contribute? 
+
+To answer this question, we can examine the $p$-values associated with
+each predictor's $t$-statistic (see ISLR Section 3.1.2). In this model, the $p$-value(s) for 'rm' and 'stat', esscentially zero,  ....  is/are low,
+but the $p$-value(s) for ....  is/ar not. This suggests that only .... and
+is/are related to sales. (In ISLR Chapter 6 we explore this question in
+greater detail.)
+
+```{r}
+# Show the statistics associated with the coefficients
+tidy(medv.fit)
+```
+
+
+## 4. How accurately can we estimate the effect of each of 'nox', 'rm' and 'lstat' on median house value?
+
+This question is asking how confident are we in the coefficients of the model.  For every unit change in each of `nox`, `rm`, and `lstat`, by what amount will the median value of homes increase or decrease? How accurately can we predict this
+amount of increase?
+
+ISLR Section 3.1.2 shows that the standard error of $\hat{??}_j$ can be used
+to construct confidence intervals for $??_j$. The the 95 % confidence intervals are as follows: 
+
+* (-1.85 - 2(2.65), -1.85r + 2(3.65)) for `nox`,
+
+* (5.12 - 2(0.447), 5.12 + 2(0.447)) for `rm`, and 
+
+* (-.062 - 2(0.052), -.062 + 2(0.052)) for `lstat`. 
+
+The confidence interval(s) for ........ is/are narrow and far from zero, providing evidence that ..... are related to `medv`.  But the interval(s)
+for .... include(s) zero, indicating that there is a chance that the the actual coefficient is zero. 
+
+In the next lab we will continue to look at the analysis of this model.
+
+##  Crime rates
+
+Choose 2  variables from the Boston data set that might predict the crime rate and 1 variable that would not predict the crime rate.  Reproduce the analysis above.
+
+In this dataset we are interested in finding whether there is a relationship between `medv` and some of the input variables, how strong the relationship is, whether a linear relationship is a good fit or not, what inferences can be made, how well can we predict values, etc.
+
+But first, "Plot the data."  Make pairwise scatterplots of `medv`, `nox`, `rm`, and `lstat` using `ggpairs`.  Observations?
+
+```{r}
+
+# HW plot only 4 columns
+Boston %>% 
+  ggpairs(columns = c("crim","tax", "dis", "age"))
+```
+
+## 1. Is there a relationship between the level of nitrous oxide (nox), number of rooms of a house (rm), or the economic status of a neighborhood (lstat) on the median value of the homes (medv)?
+
+Our first goal should be to determine whether the data provide evidence of an association between the input variables $nox$, $rm$, and $lstat$ and the output variable $medv$.
+
+
+### The $F$-test
+
+This question can be answered by using an $F$-test.
+Here are the five steps of the overall $F$-test for regression [1](http://facweb.cs.depaul.edu/sjost/csc423/documents/f-test-reg.htm)
+ 
+1. State the null and alternative hypotheses in the context of the problem.
+ 
+  $H_0:   ??_1 = ??_2 = ... = ??_{p-1} = 0$
+ 
+  $H_a:   ??_j \neq 0$, for at least one value of $j$
+ 
+2. Compute the test statistic assuming that the null hypothesis is true.
+ 
+  This is done for use by R, but the calculation is 
+  
+  $ F = \frac{\textrm{explained variance}}{\textrm{unexplained variance}}.$
+ 
+3. Calculate the $p$-value for the $F$-statistic for this model in an $F$ distribution with $(p - 1 , n - p + 1)$.  Again, R does this for us.  Reject the null hypothesis if the $p$-value is less than a predetermined value of $\alpha$.  For the purposes of this class, we will use $\alpha = 0.01$, but that would be determined by your organization or by the end user.
+ 
+### Applying the $F$-test
+
+This question can be answered by fitting a multiple regression model
+of $medv$ onto $nox$, $rm$, and $lstat$ and testing the null hypothesis that in the equation 
+
+$$medv = \beta_{nox} x_{nox} + \beta_{rm} x_{rm} + \beta_{lstat} x_{lstat}$$ 
+all the coefficients are zero.  That is, the null hypothesis is 
+
+$$H_0 : \beta_{nox} = \beta_{rm} = \beta_{lstat} = 0.$$
+If we reject the null hypothesis, then there is evidence that at least one of the $\beta_k$ is not zero.
+
+```{r}
+# create the model object, output the F-statistic
+#medv.fit <- lm(....)
+medv.fit <- lm(medv ~ nox + rm + lstat, data = Boston)
+glance(medv.fit)
+
+```
+
+The $p = ...$ for the $F$-statistic in this multivariable linear regression model is ..... than $0.01$, indicating that we would .... the null hypothesis that the coefficients are all 0.
+Thus,  there .... evidence that at least one of the coefficients is not 0.
+
+The conclusion to the $F$-test  is that there is or is not evidence of  a relationship, but testing the $F$-statistic does not indicate whether the relationship is strong or not, it does not indicate whether a linear fit is the right choice, and it does not indicate which or how many of the $\beta_k$ is non-zero.
+
+## 2. How strong is the relationship between the input variables `nox`, `rm`, and `lstat` and the median value of the homes?
+
+Can we predict the median value of a home with
+a high level of accuracy using these input variables? Or is
+a prediction of `medv` based on these three input factors only slightly
+better than a random guess? 
+
+There are two measures of model model accuracy in ISLR: percent error in predictions and the adjusted-$R^2$.
+
+First,
+the $RSE$ estimates the standard deviation of the response from the
+population regression line. For this model, the RSE is .....
+units while the mean value for the response is ...., indicating a
+percentage error of roughly  25%, which is a pretty big error and the end users would have to decide if that's okay.... . (See ISLR Section 3.1.3)
+
+Second, the adjusted $R^2$ statistic records
+the percentage of variability in the response that is explained by
+the predictors. The predictors explain almost ..... of the variance in
+median house value.
+
+Based on these two values, the percent error and the adjusted $R^2$, we could say that this is a moderately strong model.
+
+```{r}
+# Write code that will calculate the RSE and adjusted-R^2
+y_bar <- mean(Boston$medv)
+
+```
+
+In conclusion, we can predict median house values to within .... of the average median house value and the model explains ..... of the variance in median house value.  Thus, this is a (strong, weak) model.
+
+
+#### 3. Which of `nox`, `rm`, and `lstat` contribute to the median value of the homes?
+
+Do all three input variables chosen contribute to the median value of the homes,
+or do just one or two of the input variables  contribute? 
+
+To answer this question, we can examine the $p$-values associated with
+each predictor's $t$-statistic (see ISLR Section 3.1.2). In this model, the $p$-value(s) for 'rm' and 'stat', esscentially zero,  ....  is/are low,
+but the $p$-value(s) for ....  is/ar not. This suggests that only .... and
+is/are related to sales. (In ISLR Chapter 6 we explore this question in
+greater detail.)
+
+```{r}
+# Show the statistics associated with the coefficients
+tidy(medv.fit)
+```
+
+
+## 4. How accurately can we estimate the effect of each of 'nox', 'rm' and 'lstat' on median house value?
+
+This question is asking how confident are we in the coefficients of the model.  For every unit change in each of `nox`, `rm`, and `lstat`, by what amount will the median value of homes increase or decrease? How accurately can we predict this
+amount of increase?
+
+ISLR Section 3.1.2 shows that the standard error of $\hat{??}_j$ can be used
+to construct confidence intervals for $??_j$. The the 95 % confidence intervals are as follows: 
+
+* (-1.85 - 2(2.65), -1.85r + 2(3.65)) for `nox`,
+
+* (5.12 - 2(0.447), 5.12 + 2(0.447)) for `rm`, and 
+
+* (-.062 - 2(0.052), -.062 + 2(0.052)) for `lstat`. 
+
+The confidence interval(s) for ........ is/are narrow and far from zero, providing evidence that ..... are related to `medv`.  But the interval(s)
+for .... include(s) zero, indicating that there is a chance that the the actual coefficient is zero. 
+
+In the next lab we will continue to look at the analysis of this model.
+
