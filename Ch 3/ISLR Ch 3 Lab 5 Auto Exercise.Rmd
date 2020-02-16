@@ -11,6 +11,7 @@ require(tidyverse)
 ```
 
 ## R Markdown
+This lab analyzed the Auto dataset. 
 Let's look at the summary of Auto database:
 
 ```{r cars}
