@@ -1,0 +1,40 @@
+---
+title: "ISLR Ch 3 Lab 5 Auto Exercise"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(ISLR)
+require(tidyverse)
+
+```
+
+## R Markdown
+Let's look at the summary of Auto database:
+
+```{r cars}
+summary(Auto)
+```
+
+## Including Plots
+
+Next, let's create a plot with mpg as the response and horsepower as the predictor.  
+
+```{r pressure, echo=FALSE}
+ggplot(Auto, aes(x = mpg, y = horsepower)) +
+  geom_point() +
+  stat_smooth(method = lm)
+
+```
+
+Quuestion 2
+```{r}
+cor(Auto$mpg, Auto$horsepower)
+```
+First,
+the $RSE$ estimates the standard deviation of the response from the
+population regression line. For this model, the RSE is 5.554
+units while the mean value for the response is ...., indicating a
+percentage error of roughly 21%, which is a pretty big error and the end users would have to decide if that's okay.... . (See ISLR Section 3.1.3)
+

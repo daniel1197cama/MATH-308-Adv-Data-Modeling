@@ -1,0 +1,128 @@
+---
+title: "3.3.1 Qualitative Predictors "
+author: "Josie Clarke & Daniel Camacho"
+date: "February 14th, 2020"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(ISLR)
+require(tidyverse)
+require(broom)
+```
+
+## Including Qualitative Variables into a Regression Model
+
+Qualitative or factor variables as predictors:
+
+- Gender
+- Political affiliation
+- Student status
+
+They can be included in the model by creating an indicator or dummy variable.
+
+Let's study the following scenarios:
+
+- Predictors with only two levels
+- Predictors with more than two levels
+
+
+## Predictors with Only Two Levels
+
+Consider the *Credit* data set
+
++ The aim here is to predict which customers will default on their credit card debt.
+
+Based on the *gender* variable:
+
+$$ x_{i1} =
+  \begin{cases}
+                                   1 & \text{if the $i$th person is female} \\
+                                   0 & \text{if the $i$th person is male}
+  \end{cases}$$
+
+Regression equation:
+$$\begin{aligned}
+    y_{i} = {\beta_{0}} + {\beta_{1}x_{i1}} +  {\epsilon_i}
+          =  \begin{cases}
+                    {\beta_{0}} + {\beta_{1}} + {\epsilon_i} & \text{if the $i$th person is female} \\
+                    {\beta_{0}}  + {\epsilon_i} & \text{if the $i$th person is male}\\
+              \end{cases}
+\end{aligned}$$
+
+## Least squares coefficient estimates
+Gender is enconded as a dummy variable in the model (Table 3.7)
+```{r, echo = FALSE}
+model.fit <- lm(Balance ~ Gender, 
+               data = Credit)
+tidy(model.fit)
+# contrasts(Credit$Gender)
+```
+
+
+Average credit card debt:
+
+- Males: $\$509.80$
+- Females: $\$509.80 + \$19.73 = \$529.53$
+
+p-value for the dummy variable is very high
+
+## Arbitrary Coding Scheme
+ The main difference is the way in which the coefficients are interpreted
+$$ x_{i1} =
+  \begin{cases}
+                                   1 & \text{if the $i$th person is female} \\
+                                   0 & \text{if the $i$th person is male}
+  \end{cases}$$
+  
+$$ x_{i1} =
+  \begin{cases}
+                                   1 & \text{if the $i$th person is female} \\
+                                   -1 & \text{if the $i$th person is male}
+  \end{cases}$$
+  
+Regression equation:
+$$\begin{aligned}
+    y_{i} = {\beta_{0}} + {\beta_{1}x_{i1}} +  {\epsilon_i}
+          =  \begin{cases}
+                    {\beta_{0}} + {\beta_{1}} + {\epsilon_i} & \text{if the $i$th person is female} \\
+                    {\beta_{0}} - {\beta_{1}} + {\epsilon_i} & \text{if the $i$th person is male}\\
+              \end{cases}
+\end{aligned}$$
+
+## Equations
+
+
+$$ x_{i1} =
+  \begin{cases}
+                                   1 & \text{if the $i$th person is Asian} \\
+                                   0 & \text{if the $i$th person is not Asian}
+  \end{cases}$$
+
+
+$$x_{i2} =
+  \begin{cases}
+                                   1 & \text{if the $i$th person is Caucasian} \\
+                                   0 & \text{if the $i$th person is not Caucasian}
+  \end{cases}$$
+  
+---
+
+
+$$\begin{aligned}
+    y_{i} &= {\beta_{0}} + {\beta_{1}X_{i1}} + {\beta_{2}X_{i2}} + {\epsilon_i} \\
+          &=  \begin{cases}
+                    {\beta_{0}} + {\beta_{1}} + {\epsilon_i} & \text{if the $i$th person is Asian} \\
+                    {\beta_{0}} + {\beta_{2}} + {\epsilon_i} & \text{if the $i$th person is Caucasian}\\
+                    {\beta_{0}}  + {\epsilon_i} & \text{if the $i$th person is African American}\\
+              \end{cases}
+\end{aligned}$$
+
+
+## Slide with Plot
+
+```{r pressure}
+plot(pressure)
+```
+
