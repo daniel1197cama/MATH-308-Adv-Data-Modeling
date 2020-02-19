@@ -10,6 +10,8 @@ knitr::opts_chunk$set(echo = FALSE)
 require(ISLR)
 require(tidyverse)
 require(broom)
+library(DT)
+library(magrittr)
 ```
 
 ## Including Qualitative Variables into a Regression Model
@@ -91,8 +93,12 @@ $$\begin{aligned}
               \end{cases}
 \end{aligned}$$
 
-## Equations
+## Qualitative Predictors with More than Two Levels
+We create additional dummy variables when a qualitative predictor has more than two levels. 
 
+Consider the *ethnicity* variable for two dummy variables:
+
++ First
 
 $$ x_{i1} =
   \begin{cases}
@@ -100,6 +106,7 @@ $$ x_{i1} =
                                    0 & \text{if the $i$th person is not Asian}
   \end{cases}$$
 
++ Second
 
 $$x_{i2} =
   \begin{cases}
@@ -107,8 +114,9 @@ $$x_{i2} =
                                    0 & \text{if the $i$th person is not Caucasian}
   \end{cases}$$
   
----
 
+## Regression Equation
+Both of these variables $x_{i1}$ and $x_{i2}$ can be used in the regression model.
 
 $$\begin{aligned}
     y_{i} &= {\beta_{0}} + {\beta_{1}X_{i1}} + {\beta_{2}X_{i2}} + {\epsilon_i} \\
@@ -119,10 +127,27 @@ $$\begin{aligned}
               \end{cases}
 \end{aligned}$$
 
+The level with no dummy variable - African American in this example- is known as the baseline.
 
-## Slide with Plot
+## Least squares coefficient estimates
+Ethnicity is enconded as two dummy variables in the model 
 
-```{r pressure}
-plot(pressure)
+(Table 3.8)
+```{r, echo = FALSE}
+model.fit <- lm(Balance ~ Ethnicity, 
+               data = Credit)
+tidy(model.fit)
 ```
+
+```{r}
+# Possible values associated with the factor *ethnicity*:
+# contrasts(Credit$Ethnicity)
+```
+Average credit card debt:
+
+- African Americans: $\$531.00$
+- Asian: $\$521.31$
+- Caucasian: $\$518.50$
+
+## Thank you!
 
