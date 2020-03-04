@@ -1,0 +1,127 @@
+---
+title: "Chapter 4 Classification - KNN"
+author: "Jacob Austin and Sara Lawson"
+date: "3/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+require(tidyverse)
+require(modelr)
+require(MASS)
+require(class)
+
+```
+
+Our first task is to take the midge data, read it in and store it in R. We do this using tibble, and then plot it using ggplot, separating it using shape and color to discern the two types of midges. 
+
+```{r}
+midge.train <- as_tibble(read.csv("ISLR Chapter 2 Lab 3 Midge.txt",
+                                  header = TRUE))
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength,
+             color = Type, shape = Type)) +
+  geom_point()
+
+```
+
+
+Next, we wanted to create the grid of points for all possible wing lengths and antenna lengths. We stored them in a grid, moving by 0.01 along each axis and creating a point for every pair. 
+```{r}
+# not equally spaced points, so...
+# create a grid of equally spaced WingLengths and
+# AntennaLength
+
+midge.train %>% 
+  data_grid(WingLength = 
+              seq_range(WingLength, by = 0.01),
+            AntennaLength = 
+              seq_range(AntennaLength, by = 0.01)
+            ) -> midge.grid
+```
+
+Then, we want to graph that grid and see what it looks like.
+```{r}
+
+midge.grid %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength)) +
+  geom_point(shape = 3,size = 0.5, alpha = 0.3)
+```
+
+
+Now we want to graph them both together and change the grid a little to make it more visually appealing.
+
+```{r}
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength)) +
+  geom_point(aes(color = Type, shape = Type)) + #Have to have the type on a separate line because it 
+  #isnt common to both of the data sets
+  #shape = Type is how we change the shape of the data points
+  #Same thing applies to the shape, size, transparency of the midge.grid, since
+  #we don't want that to apply to the midge.train data points
+  geom_point(data = midge.grid,
+             shape = 3, size = 0.5, alpha = 0.3) +
+  theme(panel.background = element_blank()) -> midgePlot
+
+midgePlot
+```
+
+
+Next, we want to do KNN classification. To understand KNN, we need to look at what we give the formula in order to do the classification. The biggest component of KNN is K, which specifies how many nearest neighbors are looked at when classifying points. In our case, we chose K to be 3. We also selected only the WL and AL columns from the training data and test data to work with this classification. Our output from this classification is a vector. The formula for KNN takes in 4 arguments: the training input, which is the known data; testing input, which comes from the grid we created; the classification argument classifies the testing input based on the types of the training data; the final argument is k, which specifies the number of nearest neighbors that will be looked at. 
+```{r}
+################ Classify all points in the grid ##########
+# knn() requires data frames with
+# no extra columns
+# 
+# training inputs
+train.input <- midge.train %>% dplyr::select(WingLength, AntennaLength)
+
+# test inputs
+test.input <- midge.grid %>% dplyr::select(WingLength, AntennaLength)
+
+# training outputs - must be a vector, not a tibble
+train.output <- midge.train$Type
+
+neighbors <- 3
+
+midge.grid$Type <- knn(train = train.input, 
+                      test  = test.input, 
+                      cl    = train.output, 
+                      k     = neighbors)
+
+```
+
+
+Now, we want to look at the classification we just created, and plot test points on the graph to see what they would be classified as. 
+```{r}
+
+# Create test points for our graph
+
+midge.test <- tibble(Type = c("unknown", "unknown", "unknown"),
+                     WingLength = c(1.80, 1.84, 2.04),
+                     AntennaLength = c(1.24, 1.28,1.4),
+                     Index = c(1, 2, 3))
+
+# Add the grid to the midge plot and look at it
+midgePlot +
+  geom_point(data = midge.grid,
+             aes(color = Type),
+             shape = 3, size = 0.5) +
+  geom_contour(data = midge.grid, 
+               aes(z = as.numeric(Type) ),
+               breaks = c(1.5),
+               color = "black") +
+  theme(panel.background = element_blank()) +
+  geom_point(data = midge.test,
+             color = "black")
+
+
+```
+
+The code above created a graph with a boundary line for the two types. There are two points below this boundary, classified as APF, and one above classified as AF. The circle and triangle points are the known data points, and the crosses grid points are the classified predicted points from the data. Now that we have a decision boundary, we can classify any arbitrary point. This boundary would change depending on the number of nearest neighbors specified. 
+

@@ -1,0 +1,108 @@
+---
+title: "Classification Methods (LDA)"
+author: "Cassidy and Delia"
+date: "3/5/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+require(tidyverse)
+require(modelr)
+require(MASS)
+require(class)
+require(stats)
+require(knitr)
+```
+
+# Read in the data
+
+Start by reading in the midge data as a tibble. 
+
+```{r echo = TRUE}
+# read in the dataset
+midge.train <- as_tibble(read.csv("Chapter 1 Midge.txt", 
+                                  header = TRUE))
+
+```
+
+# Creating the grid and then graphing the midges on to this grid
+
+```{r echo = FALSE}
+# create a grid of equally spaced WingLengths and
+# AntennaLengths
+midge.train %>% 
+  data_grid(WingLength = 
+              seq_range(WingLength, by = 0.01),
+            AntennaLength = 
+              seq_range(AntennaLength, by = 0.01)
+  ) -> midge.grid
+```
+
+```{r echo = FALSE}
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength)) +
+  geom_point(aes(color = Type,
+                 shape = Type), size = 2)   -> baseplot
+
+```
+
+```{r echo = FALSE}
+baseplot +
+  geom_point(data = midge.grid,
+             shape = 3, size = 0.5, alpha = 0.3) +
+  theme(panel.background = element_blank())
+```
+
+Now, we will run LDA.  The `lda()` function comes from the package `MASS`.  In this function, we need to include the formula we want it to use and data we want it to use.  Then, run `summary()`, so we are able to look at the data from our model.
+
+```{r echo = TRUE}
+midge_lda <- lda(Type ~ WingLength + AntennaLength, data = midge.train)
+summary(midge_lda)
+
+```
+
+Now, we will find the averages of each of each of the categories for each type of midge. 
+
+```{r echo = TRUE}
+kable(midge_lda$means, caption = "Group Means")
+```
+
+Next, we will find the relevant coefficients.
+
+```{r echo = TRUE}
+kable(midge_lda$scaling, caption = "Coefficients of Linear Discriminants")
+```
+
+We can also find the prior probabilities of the groups.
+
+```{r echo = TRUE}
+kable(midge_lda$prior, caption = "Prior Probabilities of Groups(Pi Hat 1 and Pi Hat 2)")
+
+```
+
+
+Now, we will make predictions for each point on the grid and color them according to that prediction.  Then, we will draw a boundary line.
+
+```{r echo = TRUE}
+predictions_LDA <- predict(midge_lda, midge.grid)
+Model_LDA_test_data <-
+  cbind(midge.grid,
+        .pred = predictions_LDA$class,
+        .post = predictions_LDA$posterior,
+        .x = predictions_LDA$x[,1])
+
+
+baseplot +
+  geom_point(data = Model_LDA_test_data,
+             aes(color = .pred),
+             shape = 3, size = 0.5) +
+  geom_contour(data = Model_LDA_test_data,
+               aes(z = as.numeric(.pred) ),
+               breaks = c(1.5),
+               color = "black") +
+  theme(panel.background = element_blank())
+
+```
+

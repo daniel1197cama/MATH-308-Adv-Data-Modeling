@@ -2,7 +2,7 @@
 title: "3.3.1 Qualitative Predictors "
 author: "Josie Clarke & Daniel Camacho"
 date: "February 14th, 2020"
-output: beamer_presentation
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}

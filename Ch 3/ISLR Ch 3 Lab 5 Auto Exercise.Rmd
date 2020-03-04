@@ -11,6 +11,11 @@ require(tidyverse)
 ```
 
 ## R Markdown
+In this lab, we are going to analyze the Auto dataset. We are interested in finding whether there is a relationship between `mpg`  as the response and `horsepower` as the predictor. We will use this RMarkdown to perform the analysis and determine how strong the relationship is, how large the effect is, whether a linear relationship is a good fit or not, and use this analysis to predict the `mpg` for a `horsepower` of 98.
+
+To start, we will plot the data of `mpg` vs `horseporwer` by using ggpairs:
+
+
 This lab analyzed the Auto dataset. 
 Let's look at the summary of Auto database:
 

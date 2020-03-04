@@ -1,0 +1,103 @@
+---
+title: "Midge: QDA"
+author: "Genevieve + Nathan"
+date: "3/5/2019"
+output: html_document
+---
+
+In our first block, we imported the packages: tidyverse, modelr, MASS, cars and knitr.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(modelr)
+require(MASS)
+require(class)
+require(knitr)
+```
+
+
+We read in our data from the Midge data set and created midge.train. After that, we created a table using the Test Midge points in order to plot our graphs below. We also created a grid to plot our data on the graphs below. Lastly, we labled the midges by wing length and antenna length and signified that with shapes and color based on the type of midge.
+```{r midge}
+midge.train <- as.tibble(read.csv("Midge.txt", 
+                                  header = TRUE))
+```
+
+## Creating Grid
+```{r pressure, echo=FALSE}
+midge.train %>% 
+  data_grid(WingLength = 
+              seq_range(WingLength, by = 0.01),
+            AntennaLength = 
+              seq_range(AntennaLength, by = 0.01)
+  ) -> midge.grid
+
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength)) +
+  geom_point(aes(color = Type,
+                 shape = Type), size = 2)   -> midgePlot
+
+midge.test <- tibble(Type = c("unknown", "unknown", "unknown"),
+                     WingLength = c(1.80, 1.84, 2.04),
+                     AntennaLength = c(1.24, 1.28,1.4),
+                     Index = c(1, 2, 3))
+
+midgePlot +
+  geom_point(data = midge.test, 
+             aes(color = Type, shape = Type)) +
+  geom_text(data = midge.test, 
+            aes(label = Index),
+            nudge_x = 0.02)
+midgePlot +
+  geom_point(data = midge.grid,
+             shape = 3, size = 0.5, alpha = 0.3) +
+  theme(panel.background = element_blank())
+
+```
+
+Next, we created the boundary line using our grid from the previous section. The boundary line analized every point on the grid and determined its type by KNN.
+```{r}
+
+train.input <- midge.train %>% dplyr:: select(WingLength, AntennaLength)
+
+# test inputs
+test.input <- midge.grid %>% dplyr:: select(WingLength, AntennaLength)
+
+# training outputs - must be a vector, not a tibble
+train.output <- midge.train$Type
+neighbors <- 2
+set.seed(1)
+midge.grid$Type <- knn(train = train.input, 
+                      test= test.input, 
+                      cl= train.output, 
+                      k = neighbors,
+                    l = neighbors - 1)
+midgePlot +
+  geom_point(data = midge.grid,
+             aes(color = Type),
+             shape = 3, size = 0.5) +
+  geom_contour(data = midge.grid, 
+               aes(z = as.numeric(Type) ),
+               breaks = c(1.5),
+               color = "black") +
+  theme(panel.background = element_blank()) +
+  geom_point(data = midge.test,
+             color = "black")
+```
+
+Lastly, we analyzed our data with a quadratic discriminant analysis. Our QDA code used a function relating Type to Antenna Length and Wing Length from our midge.train data set. Using kable from the knitr package, we found group probabilities and group means from our stored QDA function.
+```{r}
+(Model_QDA <- qda(Type ~ AntennaLength + WingLength,
+                  data = midge.train))
+
+kable(Model_QDA$prior, caption = "Pior probabilities of groups(pi hat 1 and pi hat 2")
+kable(Model_QDA$means, caption = "Group means")
+```
+
+
+```{r}
+kable(Model_QDA$means, caption = "Group means")
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

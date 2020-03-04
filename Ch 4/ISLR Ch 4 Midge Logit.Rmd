@@ -1,0 +1,127 @@
+---
+title: "Logit Model with Midge Lab"
+output: html_document
+---
+
+
+We will use tibbles, pipes, and ggplot
+Modelr is installed with tidyverse, but not loaded with it
+```{r setup, include=FALSE}
+require(tidyverse)
+require(modelr)   
+require(MASS)
+require(cars)
+require(broom)    # augment
+require(knitr)    # kable
+```
+
+
+
+We download the Midge.txt file from the Scholar site. Our data was too 'perfect', so we googled an error that we were receiving and switched up an arbitrary data point in our data set midge.train. We then plotted all of the points. 
+```{r}
+midge.train <- as_tibble(read.csv("ISLR Chapter 2 Lab 3 Midge.txt",
+                                  header = TRUE))
+
+
+midge.train$Type[[4]] <- as.factor("Apf")
+
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength,
+             color = Type)) +
+  geom_point()
+```
+
+
+
+We wanted to create an easily deducible grid, so we plotted a point on the grid for WingLength and AntennaLength at every 0.01, 
+and then in color graphed the actual data on top of our created grid.
+```{r}
+midge.train %>% 
+  data_grid(WingLength, AntennaLength) -> midge.grid
+
+
+
+midge.train %>% 
+  data_grid(WingLength = 
+              seq_range(WingLength, by = 0.01),
+            AntennaLength = 
+              seq_range(AntennaLength, by = 0.01)
+            ) -> midge.grid
+
+midge.train %>% 
+  ggplot(aes(x = WingLength, 
+             y = AntennaLength)) +
+  geom_point(aes(color = Type)) +
+  geom_point(data = midge.grid,
+             shape = 3, size = 0.5, alpha = 0.3) +
+  theme(panel.background = element_blank())
+```
+
+
+This is where we start implementing our Logit model. We used a generalized linear model, comparing the factor variable Type to the numeric variables AntennaLength and WingLength. We ran the summary to understand the inital fit that we created. 
+```{r}
+
+midgeLogit <- glm(Type ~ WingLength + AntennaLength, data = midge.train, family = binomial)
+
+
+summary(midgeLogit)
+```
+
+
+The functions we used in Chapter 3 for `lm` objects will also work for `glm` objects.  
+For instance, `augment()` will add fitted values and residuals to a tibble along with the data.  However, the default fitted values from `augment()` for a `glm` object are *log-odds*; to get the *probabilities* we need to add the parameters `type.predict = response` and `type.residual = response`.  See ISLR equation (4.4) for the relationship between log-odds and probabilities.
+
+Just like for linear regression, the `augment()` function can give predictions for test data as well. We then put these results into tables to make them easier to read.
+
+```{r}
+midgeLogit_logodds <- augment(midgeLogit)
+midgeLogit_probs <- augment(midgeLogit, 
+                           type.predict = "response",
+                           type.residuals = "response")
+kable(head(midgeLogit_logodds), caption = "Logits")
+kable(head(midgeLogit_probs ), caption = "Probabilities")
+head(log(midgeLogit_probs$.fitted/(1 - midgeLogit_probs$.fitted)))
+
+
+```
+
+Here, we create dummy variables to represent the two different possible kinds of midges.
+```{r}
+contrasts(midge.train$Type)
+```
+
+In order to make a prediction as to whether the midge is of the "Af" or "Apf" type, we must convert these predicted probabilities into factor labels. We create a column in `midgeLogit_probs`of predictions based on whether the predicted type of midge is "Af" or "Apf.""
+
+```{r}
+midgeLogit_probs <- 
+  midgeLogit_probs %>%
+  mutate(.pred = ifelse(.fitted > 0.5, "Apf", "Af")) %>% 
+  dplyr::select(midge.train$.pred, .fitted, everything())           # puts the .pred, .fitted columns first
+midgeLogit_probs
+```
+
+
+### Measuring classification error
+
+#### Confusion table for measuring training error
+
+Given these predictions, we can `count()` how many observations were correctly or incorrectly classified and create a confusion matrix.
+
+
+The diagonal elements of the confusion matrix indicate correct predictions,
+while the off-diagonals represent incorrect predictions. 
+
+
+
+
+```{r}
+midgeLogit_probs %>% 
+  count(.pred, Type) %>%        # counts all combinations of (.pred, Direction)
+  spread(Type, n, fill = 0) -> confusion
+confusion
+(train_correct <- (confusion[1, 2] + confusion[2, 3])/nrow(midge.train))
+midgeLogit_probs %>%
+  summarize(accuracy = mean(.pred == Type),
+            error = mean(.pred != Type))
+```
